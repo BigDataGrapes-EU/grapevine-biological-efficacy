@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Drawer, Layout, Row, Col, Radio, Select, List, Empty } from "antd";
+import {
+  Drawer,
+  Layout,
+  Row,
+  Col,
+  Radio,
+  Select,
+  List,
+  Empty,
+  Button,
+  Space,
+} from "antd";
 import { Vega } from "react-vega";
 
 import { DrawerContent } from "./components";
@@ -329,14 +340,14 @@ export const Overview = () => {
       <List.Item
         key={field.Vineyard}
         actions={[
-          //eslint-disable-next-line
-          <a
+          <Button
+            type="link"
             onClick={showDrawer}
             key={`a-${field.Vineyard}`}
             data-field={field["geocledian_Parcel ID"]}
           >
             View Details
-          </a>,
+          </Button>,
         ]}
       >
         <List.Item.Meta
@@ -355,7 +366,7 @@ export const Overview = () => {
       <Header>
         <div className="logo"></div>
         <h1 style={{ color: "white" }}>
-          Grapevine By-Products Biological Efficacy
+          Grapevine By-Products Biological Efficacy Predictor
         </h1>
       </Header>
       <Content
@@ -367,27 +378,34 @@ export const Overview = () => {
       >
         <Row gutter={[48, 48]}>
           <Col span={8}>
-            <h3>Laboratory Analysis Origin</h3>
-            <Radio.Group defaultValue={labOrigin} onChange={handleOriginChange}>
-              <Radio.Button value="maceration">Maceration</Radio.Button>
-              <Radio.Button value="ultrasound">Ultrasound</Radio.Button>
-            </Radio.Group>
-            <h3>Laboratory Property</h3>
-            {overviewSelect}
-            <h3>Correlation Results</h3>
-            {overviewChart}
+            <Space direction="vertical" style={{ width: "100%" }}>
+              <h3>By-Product Process</h3>
+              <Radio.Group
+                defaultValue={labOrigin}
+                onChange={handleOriginChange}
+              >
+                <Radio.Button value="maceration">Maceration</Radio.Button>
+                <Radio.Button value="ultrasound">Ultrasound</Radio.Button>
+              </Radio.Group>
+              <h3>Laboratory Property</h3>
+              {overviewSelect}
+              <h3>Correlation Results</h3>
+              {overviewChart}
+            </Space>
           </Col>
           <Col span={14}>
-            <h2>Fields</h2>
-            {overviewFieldOrder}
-            <List
-              pagination={{
-                pageSize: 5,
-              }}
-              dataSource={orderedFields}
-              bordered
-              renderItem={renderListField}
-            />
+            <Space direction="vertical" style={{ width: "100%" }}>
+              <h2>Fields</h2>
+              {overviewFieldOrder}
+              <List
+                pagination={{
+                  pageSize: 5,
+                }}
+                dataSource={orderedFields}
+                bordered
+                renderItem={renderListField}
+              />
+            </Space>
           </Col>
         </Row>
       </Content>

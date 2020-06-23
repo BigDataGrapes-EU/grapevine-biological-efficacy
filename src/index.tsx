@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
 import { Overview } from "./sections";
 import "./styles/index.css";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 ReactDOM.render(
   <React.StrictMode>

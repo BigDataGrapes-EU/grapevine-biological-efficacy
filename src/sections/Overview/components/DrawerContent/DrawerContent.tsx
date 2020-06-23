@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Row, Table, Radio } from "antd";
+import { Row, Table, Radio, Space } from "antd";
 import { Correlation, Field } from "../../types";
 import MapGL, { Marker } from "react-map-gl";
 import { RadioChangeEvent } from "antd/lib/radio";
@@ -185,53 +185,43 @@ export const DrawerContent = ({
     .map((r) => r.year);
 
   return (
-    <>
+    <Space direction="vertical" style={{ width: "100%" }}>
       <h2>
         {field.Vineyard} ({field.Variety})
       </h2>
-      <Row>
-        <MapGL
-          {...viewport}
-          width="100%"
-          height="300px"
-          mapStyle="mapbox://styles/mapbox/light-v10"
-          onViewportChange={setViewport}
-          mapboxApiAccessToken={MAPBOX_ACCESS_TOKEN}
+      <MapGL
+        {...viewport}
+        width="100%"
+        height="300px"
+        mapStyle="mapbox://styles/mapbox/light-v10"
+        onViewportChange={setViewport}
+        mapboxApiAccessToken={MAPBOX_ACCESS_TOKEN}
+      >
+        <Marker
+          longitude={Number(field.lon)}
+          latitude={Number(field.lat)}
+          key={`marker-${field["geocledian_Parcel ID"]}`}
         >
-          <Marker
-            longitude={Number(field.lon)}
-            latitude={Number(field.lat)}
-            key={`marker-${field["geocledian_Parcel ID"]}`}
-          >
-            {PIN}
-          </Marker>
-        </MapGL>
-      </Row>
-      <Row>
-        <p>
-          {field.City} - {field.Region}
-        </p>
-      </Row>
+          {PIN}
+        </Marker>
+      </MapGL>
+      <p>
+        {field.City} - {field.Region}
+      </p>
       {drawerCorrelation}
-      <Row>
-        <h3>Laboratory Results</h3>
-      </Row>
-      <Row>
-        <Radio.Group defaultValue={year} onChange={handleYearChange}>
-          {years.map((year) => (
-            <Radio.Button value={year}>{year}</Radio.Button>
-          ))}
-        </Radio.Group>
-      </Row>
-      <Row>
-        <Table
-          pagination={false}
-          size="small"
-          dataSource={labResultsData}
-          columns={labResultsColumns}
-        />
-        ;
-      </Row>
-    </>
+      <h3>Laboratory Results</h3>
+      <Radio.Group defaultValue={year} onChange={handleYearChange}>
+        {years.map((year) => (
+          <Radio.Button value={year}>{year}</Radio.Button>
+        ))}
+      </Radio.Group>
+      <Table
+        pagination={false}
+        size="small"
+        dataSource={labResultsData}
+        columns={labResultsColumns}
+      />
+      ;
+    </Space>
   );
 };
