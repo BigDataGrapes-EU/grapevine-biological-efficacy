@@ -62,7 +62,7 @@ export const DrawerContent = ({
 }: props) => {
   const [prevLat, setPrevLat] = useState<number | null>(null);
   const [prevLon, setPrevLon] = useState<number | null>(null);
-  const [year, setYear] = useState<string | null>("2019");
+  const [year, setYear] = useState<string | null>("2020");
   const [viewport, setViewport] = useState({
     latitude: 0,
     longitude: 0,
