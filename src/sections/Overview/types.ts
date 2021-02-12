@@ -1,8 +1,8 @@
 export interface Correlation {
-  sat_prop: string;
+  prop: string;
   agg_time: string;
   agg_value: string;
-  sat_source: string;
+  source: string;
   value: number;
 }
 
@@ -12,11 +12,17 @@ export interface CorrResult {
   correlations: Correlation[];
 }
 
+export interface Query {
+  lab_prop_type: string;
+  top_k: number;
+}
+
 export interface CorrResultData {
+  query: Query;
   results: CorrResult[];
 }
 
-export interface Result {
+export interface PropResult {
   property: string;
   value: string;
 }
@@ -24,23 +30,10 @@ export interface Result {
 export interface LabResult {
   year: string;
   lab_prop_type: string;
-  results: Result[];
+  results: PropResult[];
 }
 
-export interface SatelliteAgg {
-  sat_prop: string;
-  agg_time: string;
-  agg_value: string;
-  sat_source: string;
-  value: number;
-}
-
-export interface SatelliteResult {
-  year: string;
-  results: SatelliteAgg[];
-}
-
-export interface Field {
+export interface BasicField {
   sample_id: string;
   Vineyard: string;
   Variety: string;
@@ -50,5 +43,25 @@ export interface Field {
   lat: number;
   lon: number;
   lab_results: LabResult[];
-  satellite_results: SatelliteResult[];
+}
+
+export interface Aggregation {
+  prop: string;
+  agg_time: string;
+  agg_value: string;
+  source: string;
+  value: number;
+  parcel_id?: number;
+  year?: number;
+}
+
+type Year = string;
+
+export interface FieldResult {
+  "geocledian_Parcel ID": number;
+  results: Record<Year, Aggregation[]>;
+}
+
+export interface Field extends BasicField {
+  results: Record<Year, Aggregation[]>;
 }

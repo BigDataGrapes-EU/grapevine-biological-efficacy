@@ -109,10 +109,10 @@ export const DrawerContent = ({
 
   let drawerCorrelation = null;
   if (correlation && labProperty) {
-    let correlationColumns = field.satellite_results.map((r) => ({
-      title: r.year,
-      dataIndex: r.year,
-      key: r.year,
+    let correlationColumns = Object.keys(field.results).map((year) => ({
+      title: year,
+      dataIndex: year,
+      key: year,
     }));
     correlationColumns.unshift({
       title: " ",
@@ -120,23 +120,23 @@ export const DrawerContent = ({
       key: "variable",
     });
 
-    const satelliteSource = field.satellite_results.reduce(
+    const fieldSource = Object.entries(field.results).reduce(
       (o, sr) => {
-        let sat_value = sr.results.find(
+        let agg_value = sr[1].find(
           (r) =>
-            r.sat_prop === correlation?.sat_prop &&
+            r.prop === correlation?.prop &&
             r.agg_time === correlation?.agg_time &&
             r.agg_value === correlation?.agg_value &&
-            r.sat_source === correlation?.sat_source
+            r.source === correlation?.source
         )?.value;
 
         return {
           ...o,
-          [sr.year]: sat_value?.toFixed(2),
+          [sr[0]]: agg_value ? agg_value.toFixed(3) : "NA",
         };
       },
       {
-        variable: `${correlation.sat_prop} (${correlation.agg_value}) until ${correlation.agg_time}`,
+        variable: `${correlation.prop} (${correlation.agg_value}) until ${correlation.agg_time}`,
       }
     );
 
@@ -158,11 +158,11 @@ export const DrawerContent = ({
         }
       );
 
-    const correlationSource = [satelliteSource, labSource];
+    const correlationSource = [fieldSource, labSource];
     drawerCorrelation = (
       <>
         <Row>
-          <h3>{`${labPropertyFull} & ${correlation.sat_prop} (${correlation.agg_value}) until ${correlation.agg_time}`}</h3>
+          <h3>{`${labPropertyFull} & ${correlation.prop} (${correlation.agg_value}) until ${correlation.agg_time}`}</h3>
         </Row>
         <Row>
           <p>{`Correlation: ${correlation.value.toFixed(2)}`}</p>

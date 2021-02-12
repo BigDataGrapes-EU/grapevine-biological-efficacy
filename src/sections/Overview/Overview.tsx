@@ -16,9 +16,9 @@ import { Vega } from "react-vega";
 import { DrawerContent } from "./components";
 
 import { server } from "../../lib/api";
-import { Field, CorrResult, CorrResultData, Correlation } from "./types";
+import { Field, CorrResult, Correlation } from "./types";
 import { RadioChangeEvent } from "antd/lib/radio";
-const { Header, Content, Footer } = Layout;
+const { Header, Content } = Layout;
 const { Option } = Select;
 
 const spec = {
@@ -34,12 +34,12 @@ const spec = {
       transform: [
         {
           type: "formula",
-          expr: "datum.sat_prop + datum.agg_value + datum.agg_time",
+          expr: "datum.prop + datum.agg_value + datum.agg_time",
           as: "key",
         },
         {
           type: "formula",
-          expr: "datum.sat_prop + ' (' + datum.agg_value + ')'",
+          expr: "datum.prop + ' (' + datum.agg_value + ')'",
           as: "label",
         },
         { type: "formula", expr: "abs(datum.value)", as: "abs_value" },
@@ -166,22 +166,38 @@ export const Overview = () => {
   // Fetch field
   useEffect(() => {
     const fetchFields = async () => {
-      const data = await server.fetchFields<Field[]>();
+      let fields = await server.fetchFields();
+      let results = await server.fetchResults();
+
+      let data: Field[] = fields.map(function (field) {
+        var result = results.filter(function (values) {
+          return (
+            values["geocledian_Parcel ID"] ===
+            parseInt(field["geocledian_Parcel ID"].split(" - ")[0])
+          );
+        });
+        return {
+          ...field,
+          results: result[0] !== undefined ? result[0].results : {},
+        };
+      });
       setFields(data);
     };
+
     fetchFields();
   }, []);
 
   // Fetch correlations & setLabProperties
   useEffect(() => {
     const fetchCorrelations = async () => {
-      const data = await server.fetchCorrelations<CorrResultData>({
+      const data = await server.fetchCorrelations({
         lab_prop_type: labOrigin,
         top_k: 10,
       });
       setLabProperties(data.results);
       setFetchedLabOrigin(labOrigin);
     };
+
     fetchCorrelations();
   }, [labOrigin]);
 
@@ -206,30 +222,26 @@ export const Overview = () => {
   useEffect(() => {
     if (correlation) {
       const sortFun = (a: Field, b: Field) => {
-        const last_sat_year = Math.max(
-          ...a.satellite_results.map((r) => Number(r.year))
+        const last_year = Math.max(
+          ...Object.keys(a.results).map((y) => parseInt(y))
         );
 
-        let a_value = a.satellite_results
-          .find((r) => Number(r.year) === last_sat_year)
-          ?.results.find(
-            (r) =>
-              r.sat_prop === correlation?.sat_prop &&
-              r.agg_time === correlation?.agg_time &&
-              r.agg_value === correlation?.agg_value &&
-              r.sat_source === correlation?.sat_source
-          )?.value;
-        let b_value = b.satellite_results
-          .find((r) => Number(r.year) === last_sat_year)
-          ?.results.find(
-            (r) =>
-              r.sat_prop === correlation?.sat_prop &&
-              r.agg_time === correlation?.agg_time &&
-              r.agg_value === correlation?.agg_value &&
-              r.sat_source === correlation?.sat_source
-          )?.value;
-        if (!a_value) return -1;
-        if (!b_value) return 1;
+        let a_value = a.results[last_year]?.find(
+          (r) =>
+            r.prop === correlation?.prop &&
+            r.agg_time === correlation?.agg_time &&
+            r.agg_value === correlation?.agg_value &&
+            r.source === correlation?.source
+        )?.value;
+        let b_value = b.results[last_year]?.find(
+          (r) =>
+            r.prop === correlation?.prop &&
+            r.agg_time === correlation?.agg_time &&
+            r.agg_value === correlation?.agg_value &&
+            r.source === correlation?.source
+        )?.value;
+        if (!a_value) return 1;
+        if (!b_value) return -1;
         return Math.sign(correlation.value) * (b_value - a_value);
       };
       setOrderedFields([...fields].sort(sortFun));
@@ -284,11 +296,9 @@ export const Overview = () => {
 
   const overviewFieldOrder = correlation ? (
     <h4>
-      {`Ordered by their ${correlation.sat_prop} (${
-        correlation.agg_value
-      }) until ${correlation.agg_time} (${
-        correlation.value < 0 ? "ascending" : "descending"
-      })`}
+      {`Ordered by their ${correlation.prop} (${correlation.agg_value}) until ${
+        correlation.agg_time
+      } (${correlation.value < 0 ? "ascending" : "descending"})`}
     </h4>
   ) : (
     <h4 style={{ opacity: 0.45 }}>
@@ -310,31 +320,29 @@ export const Overview = () => {
     const origin_lab_results = field.lab_results.filter(
       (r) => r.lab_prop_type === labOrigin
     );
-    const last_year = Math.max(
+    const last_lab_year = Math.max(
       ...origin_lab_results.map((r) => Number(r.year))
     );
     let value = origin_lab_results
-      .find((r) => Number(r.year) === last_year)
+      .find((r) => Number(r.year) === last_lab_year)
       ?.results.find((r) => r.property === labPropertyFull)?.value;
-    if (Number(value)) value = Number(value).toFixed(2);
+    if (Number(value)) value = Number(value).toFixed(3);
 
     const description = labProperty
-      ? `${labProperty} (${labOrigin}, ${last_year}): ${value}`
+      ? `${labProperty} (${labOrigin}, ${last_lab_year}): ${value}`
       : "‎‎‏‏‎ ‎";
 
-    const last_sat_year = Math.max(
-      ...field.satellite_results.map((r) => Number(r.year))
+    const last_year = Math.max(
+      ...Object.keys(field.results).map((y) => parseInt(y))
     );
 
-    let sat_value = field.satellite_results
-      .find((r) => Number(r.year) === last_sat_year)
-      ?.results.find(
-        (r) =>
-          r.sat_prop === correlation?.sat_prop &&
-          r.agg_time === correlation?.agg_time &&
-          r.agg_value === correlation?.agg_value &&
-          r.sat_source === correlation?.sat_source
-      )?.value;
+    let agg_value = field.results[last_year]?.find(
+      (r) =>
+        r.prop === correlation?.prop &&
+        r.agg_time === correlation?.agg_time &&
+        r.agg_value === correlation?.agg_value &&
+        r.source === correlation?.source
+    )?.value;
 
     return (
       <List.Item
@@ -355,7 +363,9 @@ export const Overview = () => {
           description={description}
         />
         {correlation ? (
-          <div>{`${correlation.sat_prop}: ${sat_value?.toFixed(2)}`}</div>
+          <div>{`${correlation.prop}: ${
+            agg_value ? agg_value.toFixed(3) : "NA"
+          }`}</div>
         ) : null}
       </List.Item>
     );
@@ -428,9 +438,6 @@ export const Overview = () => {
           <Empty />
         )}
       </Drawer>
-      <Footer style={{ textAlign: "center" }}>
-        Copyright © 2020 BigDataGrapes
-      </Footer>
     </Layout>
   );
 };
