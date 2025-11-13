@@ -18,8 +18,8 @@
     "react-scripts": "3.4.1",
     "react-vega": "^7.3.0",
     "typescript": "^3.7.5",
-    "vega": "^5.11.1",
-    "vega-lite": "^4.12.0"
+    "vega": "^5.33.0",
+    "vega-lite": "^6.4.1"
   },
   "scripts": {
     "start": "react-scripts start",
